@@ -4,29 +4,74 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - TicTacToe</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/TicTacToe.styles.css" asp-append-version="true" />
+
+    <style>
+       
+        .img-logo {
+            width:45px;
+            height:45px;
+        }
+
+        .navbar-nav .nav-link:hover {
+            color: #fff !important;
+            background: linear-gradient(90deg, #ff7676, #ff4d4d);
+            border-radius: 6px;
+        }
+    </style>
+ 
 </head>
 <body>
     <header>
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">TicTacToe</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
+                <div class="d-flex align-items-center me-auto">
+                    <a class="navbar-brand d-flex align-items-center" href="/">
+                        <img src="~/images/tic-tac-toe.png" alt="Logo" class="img-logo me-2">
+                    </a>
+                    <a class="navbar-brand" asp-area="" asp-controller="Game" asp-action="Index">QuizTictactoe</a>
+
+                   
+                    <ul class="navbar-nav ms-3 d-none d-sm-flex">
                         <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Game" asp-action="Score">
+                                Score
+                            </a>
                         </li>
                     </ul>
                 </div>
+
+              
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarRight"
+                        aria-controls="navbarRight" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+
+               
+                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-end" id="navbarRight">
+                    <ul class="navbar-nav">
+                        <li class="nav-item d-block d-sm-none">
+                            <a class="nav-link text-dark" asp-area="" asp-controller="Game" asp-action="Score">
+                                Score
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark"><i class="fa fa-user"></i> @User.Identity.Name</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link text-dark btn btn-outline-danger" asp-area="" 
+                                asp-controller="Account" asp-action="Logout">
+                                <i class="fa fa-sign-out"></i> ออกจากระบบ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
             </div>
         </nav>
     </header>
@@ -38,7 +83,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; 2025 - TicTacToe - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            &copy; 2025 - TicTacToe
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

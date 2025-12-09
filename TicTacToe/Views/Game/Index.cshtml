@@ -1,0 +1,105 @@
+﻿@model TicTacToe.Models.GameState;
+
+@{
+    ViewData["Title"] = "เล่นเกมส์";
+}
+
+<div class="container text-center">
+
+    <h2>Tic Tac Toe
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
+            <i class="fa fa-question-circle"></i>
+        </button>
+    </h2>
+
+    <!-- Scoreboard -->
+    <div class="row justify-content-center mt-3 mb-4">
+        <div class="col-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title mb-1">Player X</h6>
+                    <p class="card-text mb-0">@Model.PlayerScore | @Model.WinCount</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-3">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title mb-1">Bot O</h6>
+                    <p class="card-text mb-0">0000</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container text-center mt-3">
+    <h4>Player: X vs Bot: O</h4>
+
+    @if (Model.GameOver)
+    {
+        if (@Model.Result == "Draw!") { 
+            <h3 class="text-warning mt-3">@Model.Result</h3>
+        }
+        else 
+        {
+            <h3 class="text-success mt-3">@Model.Result</h3>
+        }
+    }
+    
+    <div class="d-inline-block mt-4">
+        <div class="row g-0">
+            @for (int i = 0; i < 3; i++)
+            {
+                <div class="col-12 d-flex justify-content-center">
+                    @for (int j = 0; j < 3; j++)
+                    {
+                        <div class="m-1">
+                            @if (Model.Board[i,j] == ' ' && !Model.GameOver)
+                            {
+                                <form method="post" asp-action="Move">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="row" value="@i" />
+                                    <input type="hidden" name="col" value="@j" />
+                                    <button type="submit" class="btn btn-outline-secondary btn-lg" style="width:80px; height:80px; font-size:36px;"></button>
+                                </form>
+                            }
+                            else
+                            {
+                                <div class="border border-dark d-flex align-items-center justify-content-center" 
+                                     style="width:80px; height:80px; font-size:36px; font-weight:bold;">
+                                    @Model.Board[i,j]
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <form method="post" asp-action="Reset" class="mt-4">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-danger">Restart Game</button>
+    </form>
+</div>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">กติกานับคะแนน</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+
+                1. เมื่อผู้เล่นชนะจะได้รับ 1 คะแนน (ถ้าแพ้จะเสีย 1 คะแนน)<br>
+                2. ถ้าผู้เล่นเชนะ3 ครั้งติดต่อกันจะได้รับคะแนนพิเศษเพิ่มอีก 1 คะแนน <br>
+                3. การนับจำนวนครั้งที่ชนะติดต่อกันจะถูกนับใหม่
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
