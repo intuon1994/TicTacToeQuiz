@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TicTacToe.Data.Identity;
+using TicTacToe.Models;
 
 namespace TicTacToe.Controllers
 {
@@ -12,7 +13,6 @@ namespace TicTacToe.Controllers
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-
         public AccountController(
             SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager,
@@ -26,7 +26,11 @@ namespace TicTacToe.Controllers
         [AllowAnonymous]
         [HttpGet]
         public IActionResult Login() => View();
-        
+
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult AdminLogin() => View();
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult ExternalLogin(string provider, string returnUrl = "/")
@@ -35,7 +39,6 @@ namespace TicTacToe.Controllers
             var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
             return Challenge(properties, provider);
         }
-
         public async Task<IActionResult> ExternalLoginCallback(string returnUrl = "/")
         {
             returnUrl ??= Url.Content("~/");
@@ -109,14 +112,6 @@ namespace TicTacToe.Controllers
             return LocalRedirect(returnUrl);
         }
 
-        //[HttpPost]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> Logout()
-        //{
-        //    await _signInManager.SignOutAsync();
-        //    return RedirectToAction("Login", "Account");
-        //}
-
         [Authorize]
         [HttpGet]
         public async Task<IActionResult> Logout()
@@ -125,5 +120,104 @@ namespace TicTacToe.Controllers
             return RedirectToAction("Login", "Account");
         }
 
+        [Authorize(Policy = "AdministratorOnly")]
+        [HttpGet]
+       
+        public async Task<IActionResult> RegisterAdmin()
+        {
+            //สร้าง user โดยไม่ผ่านหน้า register ข้อมูลสมุมติ
+            var _password = "!@admin99Tictactoe";
+            var _email = "admin99Tictactoe@gmail.com";
+
+            var user = new ApplicationUser
+            {
+                UserName = _email,
+                Email = _email,
+                PhoneNumber = "000-0000000",
+                IsActive = true,
+                CreateTimestamp = DateTime.Now
+            };
+
+            var result = await _userManager.CreateAsync(user, _password);
+
+            if (result.Succeeded)
+            {
+                if (!await _roleManager.RoleExistsAsync("Administrator"))
+                {
+                    await _roleManager.CreateAsync(new IdentityRole("Administrator"));
+                }
+
+                await _userManager.AddToRoleAsync(user, "Administrator");
+
+                ViewBag.Success = "Admin registered successfully!";
+            }
+            else
+            {
+                ViewBag.Success = string.Join(" | ", result.Errors.Select(e => e.Description));
+            }
+
+            return View();
+        }
+
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> AdminLogin(LoginViewModel model)
+        {
+            try
+            {
+                if (ModelState.IsValid)
+                {
+                    var user = await _userManager.FindByEmailAsync(model.UserName);
+
+                    if (user == null)
+                    {
+                        ModelState.AddModelError("LoginErrorSummary", "User not found.");
+                        return View(model);
+                    }
+
+                    if (!user.IsActive)
+                    {
+                        ModelState.AddModelError("LoginErrorSummary", "No access rights");
+                        return View(model);
+                    }
+
+                    if (!await _userManager.CheckPasswordAsync(user, model.Password))
+                    {
+                        ModelState.AddModelError("LoginErrorSummary", "The password is incorrect.");
+                        return View(model);
+                    }
+
+                    var loginResult = await _signInManager.PasswordSignInAsync(
+                        user,
+                        model.Password,
+                        isPersistent: false,
+                        lockoutOnFailure: false
+                    );
+
+                    if (loginResult.Succeeded)
+                    {
+                        // Update LastAccess
+                        user.LastAccess = DateTime.Now;
+                        await _userManager.UpdateAsync(user);
+
+                        if (string.IsNullOrWhiteSpace(model.ReturnUrl) || !model.ReturnUrl.StartsWith("/"))
+                            model.ReturnUrl = "/";
+
+                        return Redirect(model.ReturnUrl);
+                    }
+
+                    ModelState.AddModelError("LoginErrorSummary", "Invalid login");
+                    return View(model);
+                }
+
+                return View(model);
+
+            }
+            catch (Exception ex)
+            { 
+                throw;
+            }
+        }
     }
 }

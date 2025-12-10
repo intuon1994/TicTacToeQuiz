@@ -225,11 +225,9 @@ namespace TicTacToe.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("PlayerName")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Result")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("ScoreChange")
@@ -259,7 +257,6 @@ namespace TicTacToe.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<string>("PlayerName")
-                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<int>("TotalScore")

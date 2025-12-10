@@ -1,25 +1,32 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using TicTacToe.Data;
+using TicTacToe.Data.Identity;
 using TicTacToe.Data.Table;
 using TicTacToe.Models;
 
 namespace TicTacToe.Repository
 {
     public interface IGameRepository {
-        Task<bool> SaveScores(GameState game);
+        Task<bool> SaveScores(GameState game, int change);
         Task<ScoreSummary?> GetScoreSummary(string player);
         Task<List<ScoreSummary>> GetScoreSummaryAll();
         Task SaveSummary(ScoreSummary summary);
         Task UpdateSummary(ScoreSummary summary);
         Task AddHistory(ScoreHistory history);
+        Task<ScoreTrackerModel> GetScoreTracker(int id);
     }
 
     public class GameRepository:IGameRepository
     {
         private readonly ApplicationDbContext _context;
-        public GameRepository(ApplicationDbContext context) 
+        private readonly UserManager<ApplicationUser> _userManager;
+        public GameRepository(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager) 
         { 
             _context = context;
+            _userManager = userManager;
         }
         public async Task<ScoreSummary?> GetScoreSummary(string username)
         {
@@ -43,65 +50,80 @@ namespace TicTacToe.Repository
             _context.ScoreHistories.Add(history);
             await _context.SaveChangesAsync();
         }
-
-        public async Task<bool> SaveScores(GameState game)
+        public async Task<bool> SaveScores(GameState game, int change)
         {
-            await using var transaction = await _context.Database.BeginTransactionAsync();
+            var ischeckUser = await _userManager.FindByNameAsync(game.Userlogin);
 
-            try
+            if (ischeckUser != null)
             {
-                int change = 0;
+                await using var transaction = await _context.Database.BeginTransactionAsync();
 
-                if (game.Result.Contains("Bot wins"))
-                    change = -1;
-                else if (game.Result.Contains("Bonus"))
-                    change = +1;
-                else if (game.Result.Contains("win"))
-                    change = +1;
-
-                var summary = await GetScoreSummary(game.Userlogin);
-                if (summary == null)
+                try
                 {
-                    summary = new ScoreSummary
+                    var summary = await GetScoreSummary(game.Userlogin);
+                    if (summary == null)
                     {
-                        PlayerName = game.Userlogin,
-                        TotalScore = change,              
-                        CurrentWinStreak = game.WinCount,
-                        LastUpdated = DateTime.Now
-                    };
+                        summary = new ScoreSummary
+                        {
+                            PlayerName = game.Userlogin,
+                            TotalScore = change,
+                            CurrentWinStreak = game.WinCount,
+                            LastUpdated = DateTime.Now
+                        };
+                        await SaveSummary(summary);
+                    }
+                    else
+                    {
+                        summary.TotalScore += change; // ใช้ change แทน PlayerScore
+                        summary.CurrentWinStreak = game.WinCount;
+                        summary.LastUpdated = DateTime.Now;
+                        await UpdateSummary(summary);
+                    }
 
-                    await SaveSummary(summary);
+                    // บันทึก History (ยกเว้น Draw)
+                    if (!game.Result.Contains("Draw"))
+                    {
+                        var history = new ScoreHistory
+                        {
+                            PlayerName = game.Userlogin,
+                            Result = game.Result,
+                            ScoreChange = change,
+                            TotalScoreAfter = summary.TotalScore,
+                            Timestamp = DateTime.Now
+                        };
+                        await AddHistory(history);
+                    }
+
+                    await transaction.CommitAsync();
+                    return true;
                 }
-                else
+                catch
                 {
-                    summary.TotalScore += change;        // ใช้ change
-                    summary.CurrentWinStreak = game.WinCount;
-                    summary.LastUpdated = DateTime.Now;
-
-                    await UpdateSummary(summary);
+                    await transaction.RollbackAsync();
+                    return false;
                 }
-
-                
-                    var history = new ScoreHistory
-                    {
-                        PlayerName = game.Userlogin,
-                        Result = game.Result,
-                        ScoreChange = change,
-                        TotalScoreAfter = summary.TotalScore,
-                        Timestamp = DateTime.Now
-                    };
-
-                    await AddHistory(history);
-                
-
-                await transaction.CommitAsync();
-                return true;
             }
-            catch
-            {
-                await transaction.RollbackAsync();
-                return false;
+
+            return false;
+        }
+
+        public async Task<ScoreTrackerModel> GetScoreTracker(int id) 
+        {
+            var _score = new ScoreTrackerModel();
+            var scoreHistory = new List<ScoreHistory>();
+            var scoreSummary = new ScoreSummary();
+
+            scoreSummary = await _context.ScoreSummaries.FirstOrDefaultAsync(x=>x.Id == id);
+            if (scoreSummary != null) {
+                scoreHistory = await _context.ScoreHistories
+                    .Where(x => x.PlayerName == scoreSummary.PlayerName)
+                    .OrderByDescending(x => x.Timestamp).ToListAsync();
             }
+
+            _score.ScoreSummary = scoreSummary;
+            _score.ScoreDetail = scoreHistory;
+
+            return _score;
         }
     }
 }

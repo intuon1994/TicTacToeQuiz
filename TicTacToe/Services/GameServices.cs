@@ -13,12 +13,14 @@ namespace TicTacToe.Services
         { 
             _gameRepo = gameRepo;
         }
-
-        public async Task<bool> SaveScores(GameState game) => 
-            await _gameRepo.SaveScores(game);
-
-        public async Task<ScoreSummary?> GetScoreSummary(string player) => 
+        public async Task<bool> SaveScores(GameState game, int change) => 
+            await _gameRepo.SaveScores(game, change);
+        public async Task<List<ScoreSummary>> GetScoreSummariesAll() => 
+            await _gameRepo.GetScoreSummaryAll();
+        public async Task<ScoreSummary?> GetScoreSummaryByPlayer(string player) => 
             await _gameRepo.GetScoreSummary(player);
+        public async Task<ScoreTrackerModel> GetScoreTracker(int id) => 
+            await _gameRepo.GetScoreTracker(id);
         public void ResetBoard(GameState game) => game.ResetBoard();
         public bool PlaceMove(GameState game, int row, int col)
         {
@@ -45,7 +47,7 @@ namespace TicTacToe.Services
         }
         private void BotMove(GameState game)
         {
-            // 1. ชนะให้ได้ก่อน
+            // 1. ต้องหาแถวที่จะชนะให้ได้ก่อน
             var win = FindWinningMove(game, 'O');
             if (win != null)
             {
@@ -99,30 +101,31 @@ namespace TicTacToe.Services
         }
         private async void HandlePlayerWin(GameState game)
         {
-            game.PlayerScore += 1;
+            int change = 1; // ปกติชนะ +1
             game.WinCount += 1;
 
+            // ตรวจสอบ bonus ต้องชนะ 3 ครั้งติด
             if (game.WinCount >= 3)
             {
-                game.PlayerScore += 1;   // bonus
-                game.WinCount = 0;
-                game.Result = "You win! Bonus +1 (3 wins)";
-               
+                change += 1; // โบนัส +1
+                game.WinCount = 0; // รีเซ็ต streak
+                game.Result = "You win! Score +1 and Bonus +1 (3 wins)";
             }
             else
             {
                 game.Result = "You win! (+1 point)";
-                
             }
 
-            await _gameRepo.SaveScores(game);
+            // SaveScore To db
+            await SaveScores(game, change);
         }
         private async void HandleBotWin(GameState game)
         {
-            game.PlayerScore -= 1;
+            int change = -1; // แพ้ -1
+            game.WinCount = 0; // แพ้ streak รีเซ็ต
             game.Result = "Bot wins! (-1 point)";
-            await _gameRepo.SaveScores(game);
 
+            await SaveScores(game, change);
         }
         private bool CheckWin(GameState game, char player)
         {

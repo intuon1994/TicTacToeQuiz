@@ -9,6 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link href="~/css/custom.css" rel="stylesheet" />
+    <link href="~/lib/bootstrap/css/bootstrap.css" rel="stylesheet" />
 </head>
 <body>
     <div class="login-container">
@@ -41,7 +42,7 @@
 
                 </form>
              
-                <form asp-controller="Account" asp-action="ExternalLogin" method="post">
+               <!-- <form asp-controller="Account" asp-action="ExternalLogin" method="post">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="provider" value="Facebook" />
                     <button type="submit" class="social-btn facebook-material">
@@ -53,19 +54,17 @@
                         </div>
                         <span>Facebook</span>
                     </button>
-                
-                </form>
-                
-            </div>
 
-         
-        
-        
-        
+                 </form>-->
+
+                <div class="mt-5">
+                    <a class="nav-link text-danger text-center" asp-area="" 
+                        asp-controller="Account" asp-action="AdminLogin">
+                        Admin Login
+                    </a>
+                </div>
+            </div>
         </div>
     </div>
-
-
-  
 </body>
 </html>

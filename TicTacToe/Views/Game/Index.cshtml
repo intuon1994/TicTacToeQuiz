@@ -1,95 +1,125 @@
 ﻿@model TicTacToe.Models.GameState;
 
 @{
-    ViewData["Title"] = "เล่นเกมส์";
+    ViewData["Title"] = "Game";
 }
 
-<div class="container text-center">
+<div class="container mt-4">
+    <div class="row">
+        <!-- ==========SCOREBOARD ========== -->
+        <div class="col-12 col-md-4 mb-4">
+            <div class="card shadow-sm rounded-2">
+                <div class="card-body text-center">
 
-    <h2>Tic Tac Toe
-        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#exampleModal">
-            <i class="fa fa-question-circle"></i>
-        </button>
-    </h2>
+                    <h5 class="card-title">Score Player X</h5>
 
-    <!-- Scoreboard -->
-    <div class="row justify-content-center mt-3 mb-4">
-        <div class="col-3">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title mb-1">Player X</h6>
-                    <p class="card-text mb-0">@Model.PlayerScore | @Model.WinCount</p>
+                    <div class="d-flex justify-content-around align-items-center mt-3">
+                        <div class="text-center flex-fill">
+                            <span class="small">Score</span>
+                            <h4 class="fw-bold mt-1 @(Model.PlayerScore > 0 ? "text-success" : Model.PlayerScore < 0 ? "text-danger" : "")">
+                                @Model.PlayerScore
+                            </h4>
+                        </div>
+
+                        <div class="border-start mx-3" style="height:40px;"></div>
+
+                        <div class="text-center flex-fill">
+                            <span class="small">Wins</span>
+                            <h4 class="fw-bold text-success mt-1">@Model.WinCount</h4>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
-        <div class="col-3">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title mb-1">Bot O</h6>
-                    <p class="card-text mb-0">0000</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="container text-center mt-3">
-    <h4>Player: X vs Bot: O</h4>
+        <!-- ========== BOARD GAME ========== -->
+        <div class="col-12 col-md-4 mb-4 text-center">
+            <h2>
+                Tic Tac Toe
+                <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                    <i class="fa fa-question-circle"></i>
+                </button>
+            </h2>
 
-    @if (Model.GameOver)
-    {
-        if (@Model.Result == "Draw!") { 
-            <h3 class="text-warning mt-3">@Model.Result</h3>
-        }
-        else 
-        {
-            <h3 class="text-success mt-3">@Model.Result</h3>
-        }
-    }
-    
-    <div class="d-inline-block mt-4">
-        <div class="row g-0">
-            @for (int i = 0; i < 3; i++)
-            {
-                <div class="col-12 d-flex justify-content-center">
-                    @for (int j = 0; j < 3; j++)
+            <h5>Player: X vs Bot: O</h5>
+
+            <!-- BOARD -->
+            <div class="d-inline-block mt-3">
+                <div class="row g-0">
+
+                    @for (int i = 0; i < 3; i++)
                     {
-                        <div class="m-1">
-                            @if (Model.Board[i,j] == ' ' && !Model.GameOver)
+                        <div class="col-12 d-flex justify-content-center">
+                            @for (int j = 0; j < 3; j++)
                             {
-                                <form method="post" asp-action="Move">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="row" value="@i" />
-                                    <input type="hidden" name="col" value="@j" />
-                                    <button type="submit" class="btn btn-outline-secondary btn-lg" style="width:80px; height:80px; font-size:36px;"></button>
-                                </form>
-                            }
-                            else
-                            {
-                                <div class="border border-dark d-flex align-items-center justify-content-center" 
-                                     style="width:80px; height:80px; font-size:36px; font-weight:bold;">
-                                    @Model.Board[i,j]
+                                <div class="m-1">
+                                    @if (Model.Board[i, j] == ' ' && !Model.GameOver)
+                                    {
+                                        <form method="post" asp-action="Move">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="row" value="@i" />
+                                            <input type="hidden" name="col" value="@j" />
+                                            <button type="submit"
+                                                    class="btn btn-outline-secondary"
+                                                    style="width:80px; height:80px; font-size:36px;"></button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <div class="border border-dark d-flex align-items-center justify-content-center"
+                                             style="width:80px; height:80px; font-size:36px; font-weight:bold;">
+                                            @Model.Board[i, j]
+                                        </div>
+                                    }
                                 </div>
                             }
                         </div>
                     }
+
                 </div>
-            }
+            </div>
+
+            <form method="post" asp-action="Reset" class="mt-4">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-danger">Restart Game</button>
+            </form>
+        </div>
+
+        <!-- ==========RESULT ========== -->
+        <div class="col-12 col-md-4 mb-4">
+            <div class="card shadow-sm rounded-2">
+                <div class="card-body text-center">
+
+                    <h5 class="mb-3">Game Result</h5>
+
+                    @if (Model.GameOver)
+                    {
+                        if (Model.Result == "Draw!")
+                        {
+                            <h3 class="text-warning">@Model.Result</h3>
+                        }
+                        else
+                        {
+                            <h3 class="text-success">@Model.Result</h3>
+                        }
+                    }
+                    else
+                    {
+                        <h6 class="text-secondary">......</h6>
+                    }
+
+                </div>
+            </div>
         </div>
     </div>
-
-    <form method="post" asp-action="Reset" class="mt-4">
-        @Html.AntiForgeryToken()
-        <button type="submit" class="btn btn-danger">Restart Game</button>
-    </form>
 </div>
 
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">กติกานับคะแนน</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <h3 class="modal-title fs-5" id="exampleModalLabel">กติกานับคะแนน</h3>
             </div>
             <div class="modal-body">
 

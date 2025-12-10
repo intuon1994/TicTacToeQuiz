@@ -1,0 +1,74 @@
+﻿@model TicTacToe.Models.ScoreTrackerModel;
+@{
+    ViewData["Title"] = "Score Tracker";
+    var _totalScore = Model.ScoreSummary.TotalScore;
+}
+
+
+
+<div class="page-title">
+    <div class="title_left mt-3">
+        <h4>Score Tracker Detail</h4>
+    </div>
+</div>
+<div class="clearfix"></div>
+
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body p-xl-3 p-lg-3 p-2">
+                <div class="row mb-2">
+                    <div class="col-6">
+                        <h6>Player: @Model.ScoreSummary.PlayerName</h6>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h6>Total Score :
+                            <span class="@(_totalScore > 0 ? "badge badge-success" : _totalScore < 0 ? "badge badge-danger" : "badge badge-secondary")">
+                                @_totalScore
+                            </span>
+                        </h6>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-6">
+                        <h6>CurrentWinStreak: @Model.ScoreSummary.CurrentWinStreak</h6>
+                    </div>
+                    <div class="col-6 text-end">
+                        <h6>LastUpdated: @Model.ScoreSummary.LastUpdated.ToString("dd/MM/yyyy HH:mm")</h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body p-xl-3 p-lg-3 p-2">
+                <table class="table table-bordered table-hover table-hover w-100" cellspacing="0">
+                    <tr>
+                        <td class="text-center">#</td>
+                        <td>Result</td>
+                        <td>ScoreChange</td>
+                        <td>DateTime</td>
+                    </tr>
+                    @{
+                        int rowItem = 0;
+                        foreach (var item in Model.ScoreDetail)
+                        {
+                            rowItem++;
+
+                            <tr>
+                                <td class="text-center">@rowItem</td>
+                                <td>@item.Result</td>
+                                <td>@item.ScoreChange</td>
+                                <td>@item.Timestamp.ToString("dd/MM/yyyy HH:mm")</td>
+                            </tr>
+                        }
+                    }
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

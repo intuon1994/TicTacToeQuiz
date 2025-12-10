@@ -35,6 +35,12 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.Cookie.SameSite = SameSiteMode.Lax;               // ป้องกัน CSRF
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdministratorOnly", policy =>
+        policy.RequireRole("Administrator"));
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<IGameRepository, GameRepository>();

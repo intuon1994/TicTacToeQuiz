@@ -1,0 +1,43 @@
+﻿@{
+    Layout = null;
+}
+@model TicTacToe.Models.LoginViewModel;
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login</title>
+    <link href="~/css/custom.css?v=1" rel="stylesheet" />
+    <link href="~/lib/bootstrap/css/bootstrap.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="login-card">
+        <div class="login-header">
+            <img src="~/images/tic-tac-toe.png" alt="Logo" />
+            <h2>Admin Login</h2>
+            
+        </div>
+
+        <form asp-controller="Account" asp-action="AdminLogin" method="post">
+            @Html.AntiForgeryToken()
+            @foreach (var modeleState in ViewData.ModelState.Values)
+            {
+                foreach (var error in modeleState.Errors)
+                {
+                    <div class="alert alert-danger alert-dismissible" style="text-transform:capitalize">
+                        <button type="button" class="close mt-0" data-dismiss="alert">&times;</button>
+                        @error.ErrorMessage
+                    </div>
+                }
+            }
+            <input type="hidden" asp-for="ReturnUrl" value="@ViewData["ReturnUrl"]" class="form-control" readonly />
+            <input type="text" placeholder="UserName" asp-for="UserName" required/>
+            <input type="password" placeholder="password" asp-for="Password" required />
+
+            <button type="submit" class="btn-submit">Sign In</button>
+        </form>
+    </div>
+</body>
+</html>

@@ -1,0 +1,147 @@
+﻿@{
+    ViewData["Title"] = "Score Tracker";
+}
+
+<div class="page-title">
+    <div class="title_left mt-3">
+        <h4>Score Tracker</h4>
+    </div>
+</div>
+<div class="clearfix"></div>
+
+<div class="row">
+    <div class="col-md-12 col-sm-12">
+        <div class="card">
+            <div class="card-body p-xl-3 p-lg-3 p-2">
+                @Html.AntiForgeryToken()
+             
+                <table id="data_table" class="table table-bordered table-hover table-hover w-100" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th class="text-capitalize">#</th>
+                            <th class="text-capitalize">PlayerName</th>
+                            <th class="text-capitalize">TotalScore</th>
+                            <th class="text-capitalize">CurrentWinStreak</th>
+                            <th class="text-capitalize">LastUpdated</th>          
+                            <th class="text-capitalize"></th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <link href="~/lib/datatables.net-bs4/datatables.bootstrap4.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables.net-responsive-dt/responsive.datatables.min.css" rel="stylesheet" />
+    <link href="~/lib/datatables.net-buttons-bs4/buttons.bootstrap4.min.css" rel="stylesheet" />
+}
+
+@section Scripts {
+  
+    <script src="~/lib/datatables.net/jquery.datatables.min.js"></script>
+    <script src="~/lib/datatables.net-bs4/datatables.bootstrap4.min.js"></script>
+    <script src="~/lib/datatables.net-responsive/datatables.responsive.min.js"></script>
+    <script src="~/lib/datatables.net-buttons-bs4/buttons.bootstrap4.min.js"></script>
+    <script src="~/lib/datatables.net-buttons/js/datatables.buttons.min.js"></script>
+
+    <script type="text/javascript">
+        var dt;
+        var pageingType;
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        $(document).ready(function (){
+            pagingType = window.matchMedia("(max-width: 767px)").matches ? 'numbers' : 'full_numbers';
+            loaddata();
+        });
+
+        function loaddata() {
+
+            dt = $('#data_table').DataTable({
+                "dom": '<"row"<"col-sm-12 mb-3"B>>' +
+                '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+                '<"row"<"col-sm-12"tr>>' +
+                '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
+
+                "pagingType": pagingType,
+                "responsive": true,
+                "processing": true,
+                "serverSide": true,
+                "searchable": true,
+                "ordering": true,
+                "ajax": {
+                    "url": "@Url.Action("LoadScoreSummaryList","Game")",
+                    "type": "POST",
+                    "data":{
+                        "__RequestVerificationToken": token
+                    }
+                },
+
+                "columns":
+                [
+                    {
+                        "data": null, "name": "RowNumber",
+                        "render": function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
+                    { "data": "playerName", "name": "PlayerName" },
+                    { "data": "totalScore", "name": "TotalScore" },
+                    { "data": "currentWinStreak", "name": "CurrentWinStreak" },
+                    { "data": "lastUpdated","name": "LastUpdated",
+                        "render": function (data) {
+                            if (!data) return "";
+
+                            return formatDate(data);
+                        }
+                    },
+                    {
+                        "data": "id",
+                        "render": function (data, type, full, meta) {
+                            var url = '@Url.Action("_action_", new { id = "_id_" })'.replace('_id_', data);
+                            var button_action="";
+                            button_action+='<a class="text-info" href="' + url.replace('_action_', 'ScoreTrackerDetail') + '">';
+                            button_action+='<i class="fa fa-file-text-o"></i> Detail</a>';
+                            return button_action;
+                        },
+                    }
+                 ],
+
+                 "order": [[5, 'desc']],
+                 "oLanguage": {
+                    "sEmptyTable": "No data available in table",
+                    "sInfo": "Showing _START_ to _END_ of _TOTAL_ entries",
+                    "sInfoEmpty": "Showing 0 to 0 of 0 entries",
+                    "sInfoFiltered": "(filtered from _MAX_ total entries)",
+                    "sLengthMenu": "Show _MENU_ entries",
+                    "sLoadingRecords": "<img src='@Url.Content("~/images/preload_waiting.gif")' />",
+                    "sProcessing": "<img src='@Url.Content("~/images/preload_waiting.gif")' width='190' height='190' />",
+                    "sSearch": "Search:",
+                    "sZeroRecords": "No matching records found",
+                    "oPaginate": {
+                        "sFirst": "First",
+                        "sPrevious": "Previous",
+                        "sNext": "Next",
+                        "sLast": "Last"
+                    }
+                },
+
+                "aLengthMenu": [[10, 25, 50, 100, 200], [10, 25, 50, 100, 200]],
+                "iDisplayLength": 10
+            });
+        }
+        
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const day = String(date.getDate()).padStart(2, '0');
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const year = date.getFullYear();
+            const hours = String(date.getHours()).padStart(2, '0');
+            const minutes = String(date.getMinutes()).padStart(2, '0');
+            return `${day}/${month}/${year} ${hours}:${minutes}`;
+        }
+
+
+    </script>
+}
